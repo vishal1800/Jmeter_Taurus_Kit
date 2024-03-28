@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taurus-master-pod
+  labels:
+    app: taurus-master-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taurus-master-pod
+  template:
+    metadata:
+      labels:
+        app: taurus-master-pod
+        ParentNodeName: "master"
+    spec:
+      containers:
+        - name: taurus-master
+          image: dockerupdate:v1
+          env:
+            - name: JVM_ARGS
+              value: "-Xms2g -Xmx4g"
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "2"
+              memory: "2Gi"
+          command: ["/opt/jmeter/bin/jmeter-server"]
+          args:
+            - "-Jserver.rmi.ssl.disable=true"
+            - "-Jclient.rmi.localport=7000"
+            #- "-Jserver.rmi.localport=60000"
+            - "-Jserver.rmi.localport=1099"
+          ports:
+            - containerPort: 1099
+              name: taurus-master
+              protocol: TCP

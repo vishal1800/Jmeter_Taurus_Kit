@@ -1,0 +1,77 @@
+# This Taurus config file is for Taurus and JMeter POC executed through Kubernetes
+execution:
+  - scenario: testing_taurus
+    concurrency: 5
+    iterations: 1
+    hold-for: 1m
+    ramp-up: 5s
+    # JMeter distributed configuration (all available slaves should be listed below)
+    distributed:
+
+modules:
+  jmeter:
+    path: /opt/jmeter/bin
+    memory-xmx: 4G
+    # properties:
+      # log_level: INFO
+      # jmeter.save.saveservice.bytes: true
+      # jmeter.save.saveservice.label: true
+      # jmeter.save.saveservice.latency: true
+      # jmeter.save.saveservice.response_code: true
+      # jmeter.save.saveservice.response_message: true
+      # jmeter.save.saveservice.successful: true
+      # jmeter.save.saveservice.thread_counts: true
+      # jmeter.save.saveservice.thread_name: true
+      # jmeter.save.saveservice.time: true
+      # jmeter.save.saveservice.connect_time: true
+      # jmeter.save.saveservice.assertion_results_failure_message: false
+      # jmeter.save.saveservice.timestamp_format: ms
+      # jmeter.save.saveservice.print_field_names: true
+      # jmeter.save.saveservice.hostname: true
+      # jmeter.reportgenerator.report_title: "Create Application"
+    system-properties:
+      server.rmi.ssl.disable: true
+      client.rmi.localport: 7000
+      server.rmi.localport: 1099
+
+scenarios:
+  testing_taurus:
+    script: k8s-load-test.jmx
+    modifications:
+      disable:
+        - Thread Group-Create-SCAN-SCM
+      enable:
+        - Thread Group-WithoutTags
+        - Thread Group-WithTags
+        - Thread Group-Create-Offerings
+        - Thread Group-Test-Pagination
+        - Thread Group-Enable-Disable-Notifications
+        - Thread Group-Create-SAST-SCA-Scan-Test
+        - Thread Group-Audit-Logs-Workflow
+        - Thread Group-Issue-Export-Service
+
+reporting:
+  # - module: console
+    # disable: false
+    # screen: dummy
+    # dummy-cols: 140
+    # dummy-rows: 50
+  - module: passfail
+    criteria:
+      - subject: p90
+        condition: '>'
+        threshold: 50ms
+        timeframe: 2s
+        fail: true
+        stop: false
+     # - avg-rt of Altair-Login > 50 ms, stop as failed
+     # - hits > 10 for 5s, stop as failed
+     # - fail of Altair-Logout<50% for 1s, stop as failed
+     # - p90  > 1s for 1s, stop as failed
+     # - p99.9>1s for 10s, stop as failed
+     # - avg-rt>500ms for 3s, stop as failed
+
+settings:
+  check-interval: 5s
+  default-executor: jmeter
+  artifacts-dir: /mnt/jmeter

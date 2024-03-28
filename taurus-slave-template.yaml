@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taurus-slave-${SLAVE_NUMBER}
+  labels:
+    app: taurus-slave
+    ParentNodeName: "slave"
+spec:
+  replicas: 1  # Change this value if you want more replicas
+  selector:
+    matchLabels:
+      app: taurus-slave
+      ParentNodeName: "slave"
+  template:
+    metadata:
+      labels:
+        app: taurus-slave
+        ParentNodeName: "slave"
+    spec:
+      containers:
+        - name: taurus-slave
+          image: dockerupdate:v1
+          env:
+            - name: JVM_ARGS
+              value: "-Xms2g -Xmx4g"
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "2"
+              memory: "2Gi"
+          command: ["/opt/jmeter/bin/jmeter-server"]
+          args:
+            - "-Jserver.rmi.ssl.disable=true"
+            - "-Jclient.rmi.localport=7000"
+            #- "-Jserver.rmi.localport=60000"
+            - "-Jserver.rmi.localport=1099"
+          ports:
+            - containerPort: 1099
+              name: jmeter-slave
+              protocol: TCP
